@@ -10,43 +10,63 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: |
-        docker build -t stage6_se .
+      - name: Build Docker image
+        run: |
+          docker build -t stage6_se .
 
-    - name: Build HTML
-      run: |
-        docker run stage6_se make build
+      - name: Build HTML
+        run: |
+          docker run stage6_se make build
 
   pr_tests_spelling:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: |
-        docker build -t stage6_se .
+      - name: Build Docker image
+        run: |
+          docker build -t stage6_se .
 
-    - name: Lint
-      run: |
-        docker run stage6_se make spelling
+      - name: Lint
+        run: |
+          docker run stage6_se make spelling
 
   pr_tests_lint:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: |
-        docker build -t stage6_se .
+      - name: Build Docker image
+        run: |
+          docker build -t stage6_se .
 
-    - name: Lint
-      run: |
-        docker run stage6_se make checkfmt
+      - name: Lint
+        run: |
+          docker run stage6_se make checkfmt
+
+  pr_tests_live_smoke:
+    # Only run the live smoke test when an Anthropic API key has been provided
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t stage6_se .
+
+      - name: Run live smoke test
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RUN_LIVE_SMOKE_TEST: "1"
+        run: |
+          docker run --rm -e ANTHROPIC_API_KEY -e RUN_LIVE_SMOKE_TEST stage6_se python3 scripts/smoke_test_anthropic.py
